@@ -1,9 +1,10 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <juce_audio_formats/juce_audio_formats.h>
 
 FlHumbuckerAudioProcessor::FlHumbuckerAudioProcessor()
     : AudioProcessor (BusesProperties()
-                          .withInput ("Input", juce::AudioChannelSet::mono(), true)
+                          .withInput ("Input", juce::AudioChannelSet::stereo(), true)
                           .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
       apvts (*this, nullptr, "PARAMETERS", createParameterLayout())
 {
@@ -67,12 +68,16 @@ void FlHumbuckerAudioProcessor::releaseResources() {}
 
 bool FlHumbuckerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-    if (layouts.getMainInputChannelSet() != juce::AudioChannelSet::mono()
-        && layouts.getMainInputChannelSet() != juce::AudioChannelSet::disabled())
+    const auto& in = layouts.getMainInputChannelSet();
+    const auto& out = layouts.getMainOutputChannelSet();
+
+    if (in != juce::AudioChannelSet::mono()
+        && in != juce::AudioChannelSet::stereo()
+        && in != juce::AudioChannelSet::disabled())
         return false;
 
-    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-        && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+    if (out != juce::AudioChannelSet::mono()
+        && out != juce::AudioChannelSet::stereo())
         return false;
 
     return true;
@@ -168,8 +173,10 @@ void FlHumbuckerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
             if (auto bpm = pos->getBpm())
                 currentBpm = *bpm;
 
-    const auto inputLayout = getBus (true, 0);
-    const bool hasInput = inputLayout.isEnabled() && getBusBuffer (buffer, true, 0).getNumSamples() >= numSamples;
+    const auto* inputBus = getBus (true, 0);
+    const bool hasInput = inputBus != nullptr
+                          && inputBus->isEnabled()
+                          && getTotalNumInputChannels() > 0;
 
     if (hasInput)
     {

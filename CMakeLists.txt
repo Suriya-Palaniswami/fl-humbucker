@@ -25,13 +25,13 @@ juce_add_plugin(fl_humbucker
     PLUGIN_CODE Hmbx
     FORMATS VST3 AU Standalone
     PRODUCT_NAME "FL Humbucker"
-    IS_SYNTH TRUE
-    NEEDS_MIDI_INPUT TRUE
+    IS_SYNTH FALSE
+    NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT TRUE
     IS_MIDI_EFFECT FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
-    COPY_PLUGIN_AFTER_BUILD TRUE
-    VST3_CATEGORIES Instrument
+    COPY_PLUGIN_AFTER_BUILD FALSE
+    VST3_CATEGORIES Fx
 )
 
 target_sources(fl_humbucker
@@ -57,6 +57,7 @@ target_compile_definitions(fl_humbucker
 target_link_libraries(fl_humbucker
     PRIVATE
         juce::juce_audio_utils
+        juce::juce_audio_formats
         juce::juce_dsp
     PUBLIC
         juce::juce_recommended_config_flags

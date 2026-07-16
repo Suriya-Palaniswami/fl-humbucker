@@ -2,15 +2,13 @@
 
 namespace
 {
-juce::Slider makeCompactSlider (const juce::String& name, const juce::String& suffix = {})
+void setupCompactSlider (juce::Slider& slider, const juce::String& name, const juce::String& suffix = {})
 {
-    juce::Slider slider;
     slider.setSliderStyle (juce::Slider::LinearHorizontal);
     slider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 56, 20);
     slider.setName (name);
     if (suffix.isNotEmpty())
         slider.setTextValueSuffix (suffix);
-    return slider;
 }
 } // namespace
 
@@ -70,12 +68,12 @@ FlHumbuckerAudioProcessorEditor::FlHumbuckerAudioProcessorEditor (FlHumbuckerAud
 
     addAndMakeVisible (timeline);
 
-    inputGainSlider = makeCompactSlider ("Input", " dB");
-    onsetSlider = makeCompactSlider ("Sensitivity");
-    pitchConfSlider = makeCompactSlider ("Pitch");
-    monitorSlider = makeCompactSlider ("Monitor");
-    previewLevelSlider = makeCompactSlider ("Preview");
-    bpmSlider = makeCompactSlider ("BPM");
+    setupCompactSlider (inputGainSlider, "Input", " dB");
+    setupCompactSlider (onsetSlider, "Sensitivity");
+    setupCompactSlider (pitchConfSlider, "Pitch");
+    setupCompactSlider (monitorSlider, "Monitor");
+    setupCompactSlider (previewLevelSlider, "Preview");
+    setupCompactSlider (bpmSlider, "BPM");
 
     for (auto* slider : { &inputGainSlider, &onsetSlider, &pitchConfSlider,
                           &monitorSlider, &previewLevelSlider, &bpmSlider })
