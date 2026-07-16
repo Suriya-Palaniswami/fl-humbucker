@@ -1,0 +1,37 @@
+# Build
+build/
+cmake-build-*/
+out/
+*.user
+*.suo
+*.vcxproj*
+*.sln
+xcodebuild/
+DerivedData/
+
+# JUCE
+JUCE/
+build-*/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Artifacts
+*.vst3
+*.component
+*.dll
+*.so
+*.dylib
+*.exe
+
+# Captured samples (local dev)
+captures/
+*.wav
