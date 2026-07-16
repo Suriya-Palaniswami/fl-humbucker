@@ -1,151 +1,107 @@
 # FL Humbucker
 
-Turn beatboxing and humming into **MIDI patterns** and **audio samples** inside FL Studio.
+Turn **your humming and beatboxing** into **patterns made from your chosen sample** — without wrestling with FL Studio routing.
 
-FL Humbucker is a VST3/AU audio plugin built with [JUCE](https://juce.com/). It listens to your microphone, analyzes what you perform in real time, and outputs either MIDI notes or captured WAV slices you can drop into the playlist.
+## Core workflow
 
-## What it does
+```
+1. PERFORM     Hum a melody or beatbox a rhythm
+2. PICK SOUND  Choose any WAV/sample from your packs
+3. GET PATTERN Preview, export WAV, or export MIDI
+```
 
-| Mode | Input | Output |
-|------|-------|--------|
-| **Hum to MIDI** | Sung/hummed melody | Monophonic MIDI notes (pitch-tracked) |
-| **Beatbox to Drums** | Kick, snare, hi-hat, etc. | General MIDI drum hits |
-| **Capture Samples** | Any vocal percussion | 16-slot rolling buffer of WAV slices |
+You already know the musical idea. FL Humbucker captures **when** and **what pitch** you performed, then arranges **your sample** into that shape.
 
-All modes support optional **grid quantization** and **pattern recording** with MIDI export.
+## Modes
+
+| Mode | You perform | Plugin captures | Your sample becomes |
+|------|-------------|-----------------|---------------------|
+| **Melody (hum)** | A sung/hummed line | Pitch + timing | A melody shaped like your hum |
+| **Rhythm (beatbox)** | A kick pattern, claps, etc. | Hit timing | Your sample on each hit |
+
+### Options
+
+- **Follow my pitch** — melody mode pitches your sample to match your hum
+- **Quantize** — snap timing to 1/4, 1/8, 1/16, or 1/32
+- **Preview Pattern** — hear the result inside the plugin
+- **Export WAV Pattern** — drag into FL Playlist (easiest path)
+- **Export MIDI** — import into piano roll / FPC if you prefer
+
+## Build (Windows)
+
+### Requirements
+
+- Visual Studio 2022 (Desktop C++ workload) or Build Tools
+- [CMake](https://cmake.org/download/) 3.22+
+- Git
+
+```bat
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+```
+
+Install the plugin:
+
+```
+build\fl_humbucker_artefacts\Release\VST3\FL Humbucker.vst3
+  →  C:\Program Files\Common Files\VST3\
+```
+
+Rescan plugins in FL Studio.
+
+## FL Studio quick start
+
+See [docs/FL_STUDIO_SETUP.md](docs/FL_STUDIO_SETUP.md).
+
+**Fastest path (no MIDI routing):**
+
+1. Mic on a mixer track → insert **FL Humbucker**
+2. **Record** your idea → **Stop**
+3. **Choose Sample** (kick, snare, chop, pluck — anything)
+4. **Preview Pattern** to check it
+5. **Export WAV Pattern** → drag into the Playlist
+
+Repeat for each layer (kick pass, snare pass, melody pass) — the way you'd naturally build a beat.
+
+## Layering workflow (recommended)
+
+This matches how arrangers think:
+
+1. Beatbox a **kick rhythm** → pick your kick sample → export WAV → playlist
+2. Beatbox a **snare rhythm** → pick snare sample → export WAV → layer
+3. Hum a **bass or lead** → pick sample → enable **Follow my pitch** → export
+
+No training, no MIDI ports, no drum classification required.
 
 ## Architecture
 
 ```
-Microphone
+Mic performance
+      │
+      ▼
+┌──────────────────┐
+│ PerformanceCapture│  timed events (pitch or hits)
+└────────┬─────────┘
+         │
+    ┌────┴────┐
+    ▼         ▼
+SampleSlot  PatternRenderer
+ (your WAV)   (audio + MIDI)
     │
     ▼
-┌─────────────────────────────────────────┐
-│  JUCE Plugin (VST3 / AU / Standalone)   │
-│                                         │
-│  ┌─────────────┐   ┌─────────────────┐  │
-│  │ Pitch (YIN) │   │ Onset Detector  │  │
-│  └──────┬──────┘   └────────┬────────┘  │
-│         │                   │           │
-│         ▼                   ▼           │
-│  ┌─────────────┐   ┌─────────────────┐  │
-│  │ Hum → MIDI  │   │ Beatbox Classify│  │
-│  └──────┬──────┘   └────────┬────────┘  │
-│         │                   │           │
-│         └────────┬──────────┘           │
-│                  ▼                      │
-│         ┌─────────────────┐             │
-│         │  MIDI Emitter   │             │
-│         │ Pattern Recorder│             │
-│         │  Sample Capture │             │
-│         └────────┬────────┘             │
-└──────────────────┼──────────────────────┘
-                   ▼
-         FL Studio / other DAW
+PerformanceSampler (preview)
 ```
-
-### Analysis modules
-
-- **PitchDetector** — YIN-style autocorrelation for monophonic humming
-- **OnsetDetector** — energy + spectral-flux transient detection
-- **BeatboxClassifier** — heuristic spectral bands (kick/snare/hat/tom/clap)
-- **SampleCapture** — ring-buffer slicer with pre/post roll
-- **MidiEmitter** — note output with optional quantization
-- **PatternRecorder** — records events for `.mid` export
-
-## Build
-
-### Requirements
-
-- CMake 3.22+
-- C++17 compiler (Clang, GCC, or MSVC)
-- Git (JUCE is fetched automatically)
-
-### macOS
-
-```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-```
-
-The VST3 is copied to:
-`~/Library/Audio/Plug-Ins/VST3/FL Humbucker.vst3`
-
-### Windows
-
-```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-```
-
-Install the built `.vst3` from `build/fl_humbucker_artefacts/Release/VST3/` into:
-`C:\Program Files\Common Files\VST3\`
-
-### Use a local JUCE checkout
-
-```bash
-cmake -B build -DJUCE_PATH=/path/to/JUCE
-cmake --build build
-```
-
-## FL Studio setup
-
-See [docs/FL_STUDIO_SETUP.md](docs/FL_STUDIO_SETUP.md) for routing MIDI to other channels.
-
-Quick version:
-
-1. Rescan plugins in FL Studio (Options → Manage plugins)
-2. Add **FL Humbucker** on an **audio input** mixer track (enable your mic)
-3. Open the plugin **gear menu** → set **MIDI output** to a free port
-4. On your drum/synth channel, set **MIDI input** to the same port
-5. Arm record + enable **Record to piano roll** to capture patterns
-
-> **Note:** VST3 has no native "MIDI effect" type. This plugin is registered as a synth with silent audio output so FL Studio can route its MIDI out to other instruments.
 
 ## Roadmap
 
-### v0.1 (current) — MVP
-- [x] Real-time pitch tracking (hum → MIDI)
-- [x] Onset detection + heuristic drum classification
-- [x] Sample capture on transients
-- [x] Pattern record + MIDI export
-- [x] Basic plugin UI
-
-### v0.2 — Better recognition
-- [ ] Train a small CNN classifier (see [Deepbox](https://github.com/eupston/Deepbox) for reference)
-- [ ] User calibration ("this sound = kick")
-- [ ] Velocity curves and note length from envelope
-
-### v0.3 — DAW integration
-- [ ] Drag-and-drop slices into FL Browser
-- [ ] Direct FLP pattern export
-- [ ] FL Studio "Burn MIDI" helper workflow
-
-### v0.4 — Polish
-- [ ] Latency compensation display
-- [ ] Noise gate / input auto-gain
-- [ ] Presets per beatbox style
-
-## Improving accuracy
-
-**Humming**
-- Use a quiet room; hum clearly into the mic
-- Lower **Pitch Confidence** if notes are missed; raise it if you get false triggers
-- Enable **Quantize** when laying ideas over a beat
-
-**Beatboxing**
-- Exaggerate the difference between kick (deep chest), snare (sharp "ka"), and hat (tight "ts")
-- Increase **Onset Sensitivity** for soft hits; decrease for noisy environments
-- For best results, plan to train a custom model on *your* sounds (v0.2)
+- [x] Perform → pick sample → export pattern (core journey)
+- [x] Melody + rhythm modes
+- [x] Timeline preview
+- [x] WAV + MIDI export
+- [ ] Drag slice directly into FL Browser
+- [ ] Multiple sample slots per pass
+- [ ] Optional ML beatbox classifier
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
-Analysis code is original. JUCE is used under its own license when you build the project.
-
-## Related projects
-
-- [Deepbox](https://github.com/eupston/Deepbox) — beatbox CNN → MIDI (great inspiration for ML path)
-- [aubio](https://aubio.org/) — mature onset/pitch library (GPL; optional future integration)
-- [rt-slicer](https://github.com/dnewcome/rt-slicer) — live transient slicing reference

@@ -3,10 +3,11 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "Analysis/PitchDetector.h"
 #include "Analysis/OnsetDetector.h"
-#include "Analysis/BeatboxClassifier.h"
-#include "Analysis/SampleCapture.h"
-#include "Analysis/MidiEmitter.h"
-#include "Analysis/PatternRecorder.h"
+#include "Analysis/PerformanceCapture.h"
+#include "Analysis/SampleSlot.h"
+#include "Analysis/PatternRenderer.h"
+#include "Analysis/PerformanceSampler.h"
+#include <atomic>
 
 class FlHumbuckerAudioProcessor : public juce::AudioProcessor
 {
@@ -39,36 +40,52 @@ public:
 
     juce::AudioProcessorValueTreeState& getApvts() noexcept { return apvts; }
 
-    humbucker::OutputMode getOutputMode() const noexcept { return outputMode; }
-    bool isPatternRecording() const noexcept { return patternRecorder.isRecording(); }
-    const humbucker::PatternRecorder& getPatternRecorder() const noexcept { return patternRecorder; }
-    const humbucker::SampleCapture& getSampleCapture() const noexcept { return sampleCapture; }
+    void startPerformanceCapture();
+    void stopPerformanceCapture();
+    bool isPerformanceCapturing() const noexcept { return captureActive.load(); }
+
+    humbucker::PerformanceMode getPerformanceMode() const noexcept { return performanceMode; }
+    const humbucker::PerformanceCapture& getPerformanceCapture() const noexcept { return performanceCapture; }
+
+    bool loadSample (const juce::File& file);
+    bool hasLoadedSample() const noexcept { return sampleSlot.hasSample(); }
+    juce::String getLoadedSampleName() const { return sampleSlot.getName(); }
+
+    void startPreview();
+    void stopPreview();
+    bool isPreviewing() const noexcept { return performanceSampler.isPreviewActive(); }
+    double getPreviewPlayheadSeconds() const noexcept { return performanceSampler.getPreviewPlayheadSeconds(); }
+
+    bool exportPatternAudio (const juce::File& file) const;
+    bool exportPatternMidi (const juce::File& file) const;
 
     float getLastDetectedPitchHz() const noexcept { return pitchDetector.getLastFrequencyHz(); }
     float getLastOnsetStrength() const noexcept { return onsetDetector.getLastOnsetStrength(); }
-    humbucker::DrumClass getLastDrumClass() const noexcept { return lastDrumClass; }
 
-    bool exportRecordedPattern (const juce::File& file) const;
-    bool exportCapturedSlice (int sliceIndex, const juce::File& file) const;
+    humbucker::PatternRenderOptions getRenderOptions() const;
 
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+    void processMelodyCapture (const float* samples, int numSamples, double blockStartTime);
+    void processRhythmCapture (const float* samples, int numSamples, double blockStartTime);
 
     juce::AudioProcessorValueTreeState apvts;
     humbucker::PitchDetector pitchDetector;
     humbucker::OnsetDetector onsetDetector;
-    humbucker::BeatboxClassifier beatboxClassifier;
-    humbucker::SampleCapture sampleCapture;
-    humbucker::MidiEmitter midiEmitter;
-    humbucker::PatternRecorder patternRecorder;
+    humbucker::PerformanceCapture performanceCapture;
+    humbucker::SampleSlot sampleSlot;
+    humbucker::PatternRenderer patternRenderer;
+    humbucker::PerformanceSampler performanceSampler;
 
-    humbucker::OutputMode outputMode = humbucker::OutputMode::humToMidi;
-    humbucker::DrumClass lastDrumClass = humbucker::DrumClass::unknown;
+    humbucker::PerformanceMode performanceMode = humbucker::PerformanceMode::melody;
+    std::atomic<bool> captureActive { false };
+    int64_t captureSampleCounter = 0;
+    int lastCapturedMidiNote = -1;
+    int unvoicedBlocks = 0;
 
     std::vector<float> monoScratch;
+    double currentSampleRate = 44100.0;
     double currentBpm = 120.0;
-    double currentPpq = 0.0;
-    bool hostIsPlaying = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FlHumbuckerAudioProcessor)
 };

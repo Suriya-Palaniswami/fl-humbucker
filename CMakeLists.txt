@@ -38,12 +38,13 @@ target_sources(fl_humbucker
     PRIVATE
         Source/PluginProcessor.cpp
         Source/PluginEditor.cpp
+        Source/UI/PerformanceTimeline.cpp
         Source/Analysis/PitchDetector.cpp
         Source/Analysis/OnsetDetector.cpp
-        Source/Analysis/BeatboxClassifier.cpp
-        Source/Analysis/SampleCapture.cpp
-        Source/Analysis/MidiEmitter.cpp
-        Source/Analysis/PatternRecorder.cpp
+        Source/Analysis/PerformanceCapture.cpp
+        Source/Analysis/SampleSlot.cpp
+        Source/Analysis/PatternRenderer.cpp
+        Source/Analysis/PerformanceSampler.cpp
 )
 
 target_compile_definitions(fl_humbucker

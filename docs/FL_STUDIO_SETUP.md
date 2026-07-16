@@ -1,92 +1,94 @@
 # FL Studio Setup Guide
 
-This guide walks through using **FL Humbucker** in Image-Line FL Studio.
+FL Humbucker is designed so you **don't need MIDI routing** for the core workflow.
 
-## 1. Install the plugin
+## Recommended workflow (easiest)
 
-After building, ensure FL Studio can see the VST3:
+### 1. Set up the mic
 
-- **macOS:** `~/Library/Audio/Plug-Ins/VST3/FL Humbucker.vst3`
-- **Windows:** `C:\Program Files\Common Files\VST3\FL Humbucker.vst3`
+1. Open FL Studio
+2. Add a **Mixer** track
+3. Set input to your microphone
+4. Insert **FL Humbucker** on that track
+5. Raise **Input** gain until you see events when you perform (optional: raise **Monitor** to hear yourself)
 
-In FL Studio: **Options → Manage plugins → Find plugins** (or rescan).
+### 2. Perform your idea
 
-## 2. Create an input track
+1. Choose **Melody (hum)** or **Rhythm (beatbox)**
+2. Click **Record**
+3. Hum or beatbox your pattern once
+4. Click **Stop**
+5. Check the timeline — dots should show your captured pattern
 
-1. Add a new **Mixer** track
-2. Set its input to your microphone (e.g. `Mic 1`)
-3. Insert **FL Humbucker** as an effect on that track
-4. Turn up **Input Gain** in the plugin until your performance peaks without clipping
+### 3. Pick your sound
 
-## 3. Route MIDI to a drum/synth channel
+1. Click **Choose Sample...**
+2. Browse to any WAV from your free packs (kick, snare, vocal chop, synth pluck, etc.)
+3. For melodies, keep **Follow my pitch** on so the sample follows your hum
 
-FL Studio routes VST3 MIDI through each plugin's settings panel:
+### 4. Get your pattern
 
-1. Click the **gear icon** on the FL Humbucker wrapper
-2. Under **Output**, pick a MIDI port (e.g. `Port 1`)
-3. On your target instrument channel (FPC, Drum Rack, synth, etc.):
-   - Open its wrapper gear menu
-   - Set **Input** to the same port
+| Button | What you get | Best for |
+|--------|--------------|----------|
+| **Preview Pattern** | Hear it through the plugin | Quick check |
+| **Export WAV Pattern** | One audio file with your sample placed on the pattern | **Drag into Playlist** |
+| **Export MIDI** | Standard `.mid` file | Piano roll / FPC workflow |
 
-Alternative: use **Patcher** and cable FL Humbucker's MIDI out to your instrument.
+**Playlist method (recommended):**
 
-## 4. Modes
+1. Export WAV
+2. Drag the file into the FL **Playlist**
+3. Line it up with your beat
+4. Repeat for the next layer (new performance, new sample)
 
-### Hum to MIDI
+## Layering example
 
-- Select **Hum to MIDI**
-- Route MIDI to any melodic instrument (3x Osc, Serum, etc.)
-- Optional: enable **Quantize** + grid (1/16 works well for melodies)
+Build a beat the way you hear it in your head:
 
-### Beatbox to Drums
+| Pass | Mode | You do | Sample | Output |
+|------|------|--------|--------|--------|
+| 1 | Rhythm | Beatbox "boots boots boots" | `kick.wav` | Kick layer WAV |
+| 2 | Rhythm | Beatbox snare pattern | `snare.wav` | Snare layer WAV |
+| 3 | Melody | Hum bass line | `bass_pluck.wav` | Bass melody WAV |
 
-- Select **Beatbox to Drums**
-- Route MIDI to **FPC**, **Slicex**, or a GM drum map
-- Default mapping:
-  - Kick → 36
-  - Snare → 38
-  - Hi-hat → 42
-  - Clap → 39
-  - Tom → 45
+Stack the WAVs on separate playlist tracks. You arrange — the plugin executes.
 
-### Capture Samples
+## Optional: MIDI workflow
 
-- Select **Capture Samples**
-- Each detected hit saves a slice (16 slots, rolling)
-- Click **Export Last Slice** to write a `.wav` for the Playlist or Browser
+If you prefer piano roll editing:
 
-## 5. Record a pattern
+1. Export MIDI
+2. **File → Import → MIDI file** (or drag into a channel)
+2. Load your sample in **FPC**, **Slicex**, or **DirectWave**
+3. All notes are on one pitch (C4 / note 60) for rhythm mode
+4. Melody mode exports the pitches you hummed
 
-**Live recording into piano roll:**
+## Settings tips
 
-1. Enable **Record Pattern** in the plugin
-2. Press FL Studio's global record button
-3. Perform your beatbox/hum
-4. Stop recording — notes appear on the target instrument's piano roll
+| Control | When to adjust |
+|---------|----------------|
+| **Sensitivity** | Missed beatbox hits → raise. False triggers → lower |
+| **Pitch** | Missed hum notes → lower. Wrong notes → raise |
+| **Quantize** | Turn on when performing over a beat in FL |
+| **BPM** | Match your project tempo for quantize + MIDI export |
+| **Monitor** | Hear your mic while recording |
+| **Preview** | Volume of pattern preview playback |
 
-**Export MIDI file:**
-
-1. Record with **Record Pattern** enabled
-2. Click **Export MIDI**
-3. Drag the `.mid` into FL Studio or import via **File → Import → MIDI file**
-
-FL Studio also offers **Tools → Burn MIDI** on some plugin wrappers — useful if live routing is flaky.
-
-## 6. Troubleshooting
+## Troubleshooting
 
 | Problem | Fix |
 |---------|-----|
-| No MIDI reaching synth | Check gear-menu port routing on both plugin and instrument |
-| Plugin mutes track | Keep **Monitor** at 0; ensure input bus is enabled |
-| Wrong drum sounds | Target instrument must use GM drum mapping (FPC bank A) |
-| Missed hits | Raise **Onset Sensitivity** or **Input Gain** |
-| False hum notes | Raise **Pitch Confidence** threshold |
-| Latency | Lower FL buffer size; expect ~20–50 ms analysis latency |
+| No events captured | Check mic input on mixer track; raise Input gain |
+| Timeline empty after stop | Perform louder/clearer; lower Pitch threshold for hum |
+| Export WAV is silent | Choose a sample first; make sure events were captured |
+| Melody sounds wrong pitch | Toggle **Follow my pitch**; try a shorter sample |
+| Pattern feels off-time | Enable **Quantize**, set grid to 1/16, match **BPM** to project |
+| Can't find plugin | Rescan VST3 folder; confirm install path |
 
-## 7. Suggested workflow
+## Why this is easier than routing MIDI
 
-1. Loop a beat in FL Studio
-2. Hum a bassline idea → **Hum to MIDI** → 3x Osc
-3. Switch to **Beatbox to Drums**, quantize to 1/16, lay a kick/snare pattern
-4. Switch to **Capture Samples** for one-shot vocal FX
-5. Export MIDI + WAV slices into your project folder
+Old approach: mic → plugin → MIDI port → another channel → record → piano roll.
+
+**New approach:** mic → plugin → **WAV file** → playlist.
+
+You skip the parts of FL Studio that block your ideas. You still layer and arrange — you just start from audio patterns you can hear immediately.
